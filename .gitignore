@@ -1,0 +1,15 @@
+# Zeabur 会把仓库内的文件作为静态资源对外提供（任何人可直接访问/下载）
+# 因此内部工作目录不得上传：内含原始备份与工作记录
+.workbuddy/
+
+# 系统与编辑器残留
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+
+# 临时文件
+*.tmp
+*.bak
+*.log

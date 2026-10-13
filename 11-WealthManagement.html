@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>11. 理财 · YBT → EAST 血缘</title>
+<style>
+:root{
+  --bg:#0e1116; --bg2:#151a22; --bg3:#1b222c; --line:#252d39;
+  --tx:#e6edf6; --tx2:#9aa8bb; --tx3:#67748a;
+  --direct:#3fb950; --code:#d29922; --process:#58a6ff;
+  --east:#1f6feb; --ybt:#8957e5; --warn:#f85149;
+  --shadow:0 8px 28px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--tx);
+  font:14px/1.6 "Microsoft YaHei","PingFang SC",-apple-system,sans-serif;
+  overflow:hidden;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+/* ---------- 顶栏 ---------- */
+#top{
+  height:56px;display:flex;align-items:center;gap:16px;padding:0 18px;
+  background:var(--bg2);border-bottom:1px solid var(--line);position:relative;z-index:50;
+}
+#top h1{font-size:16px;font-weight:600;letter-spacing:.3px;white-space:nowrap}
+#top h1 span{color:var(--tx3);font-weight:400;font-size:12px;margin-left:8px}
+.stats{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap}
+.stat{
+  background:var(--bg3);border:1px solid var(--line);border-radius:6px;
+  padding:4px 11px;font-size:12px;color:var(--tx2);white-space:nowrap;
+}
+.stat b{color:var(--tx);font-size:13px;font-weight:600;margin-right:3px}
+.legend{display:flex;gap:13px;align-items:center;margin-left:8px}
+.lg{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--tx2);white-space:nowrap}
+.lg i{width:16px;height:3px;border-radius:2px;display:block}
+
+/* ---------- 主体 ---------- */
+#main{display:flex;height:calc(100% - 96px)}
+#navBar{
+  height:40px;background:var(--bg2);border-bottom:1px solid var(--line);
+  overflow-x:auto;overflow-y:hidden;white-space:nowrap;position:relative;z-index:45;
+}
+#navInner{display:inline-flex;gap:5px;padding:5px 14px;align-items:center;height:100%}
+.navitem{
+  display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:6px;
+  background:var(--bg3);border:1px solid var(--line);color:var(--tx2);
+  font-size:12.5px;text-decoration:none;transition:background .12s,border-color .12s;flex:0 0 auto;
+}
+.navitem:hover{background:#252f3c;color:var(--tx);border-color:#3a4757}
+.navitem.on{background:#1f3a5f;border-color:var(--east);color:#fff}
+.navitem .no{
+  width:17px;height:17px;border-radius:4px;background:#0f1620;display:flex;
+  align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--tx3);
+}
+.navitem.on .no{background:rgba(255,255,255,.18);color:#fff}
+.navitem .mini{font-size:10.5px;color:var(--tx3)}
+.navitem.on .mini{color:#c6d9f0}
+.navitem.empty{opacity:.62;border-style:dashed}
+#h1theme{color:var(--east);font-weight:500;margin-left:8px;font-size:13px}
+#side{
+  width:270px;flex:0 0 270px;background:var(--bg2);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#search{padding:12px;border-bottom:1px solid var(--line)}
+#search input{
+  width:100%;padding:8px 11px;background:var(--bg3);border:1px solid var(--line);
+  border-radius:6px;color:var(--tx);font-size:13px;outline:none;
+}
+#search input:focus{border-color:var(--east)}
+#filterBox{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:7px}
+.frow{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--tx2);cursor:pointer;user-select:none}
+.frow:hover{color:var(--tx)}
+.frow input{accent-color:var(--east);cursor:pointer;margin:0}
+.chip{width:11px;height:11px;border-radius:3px;flex:0 0 11px}
+.fcount{margin-left:auto;color:var(--tx3);font-size:11px}
+#listWrap{flex:1;overflow-y:auto;padding:6px 0}
+.lgroup{
+  padding:9px 13px 5px;font-size:11px;color:var(--tx3);font-weight:600;
+  letter-spacing:.6px;position:sticky;top:0;background:var(--bg2);z-index:2;
+  border-bottom:1px solid var(--line);
+}
+.item{
+  padding:6px 13px;font-size:12.5px;color:var(--tx2);cursor:pointer;
+  display:flex;align-items:center;gap:8px;border-left:2px solid transparent;
+}
+.item:hover{background:var(--bg3);color:var(--tx)}
+.item.on{background:#1f2937;color:var(--tx);border-left-color:var(--east)}
+.item .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .ct{font-size:10.5px;color:var(--tx3);flex:0 0 auto}
+
+/* ---------- 画布 ---------- */
+#canvasWrap{flex:1;position:relative;overflow:hidden;background:
+  radial-gradient(ellipse at 50% 0%,#141b26 0%,var(--bg) 70%)}
+#svg{width:100%;height:100%;display:block;cursor:grab}
+#svg.drag{cursor:grabbing}
+
+/* 列头 */
+.colhd{
+  position:absolute;top:0;z-index:10;padding:9px 16px;font-size:12.5px;font-weight:600;
+  display:flex;align-items:center;gap:8px;background:var(--bg2);
+  border:1px solid var(--line);border-radius:0 0 8px 8px;pointer-events:none;
+}
+.colhd.l{left:0;border-radius:0 0 8px 0;border-left:none}
+.colhd.r{right:0;border-radius:0 0 0 8px;border-right:none}
+.colhd .dot{width:8px;height:8px;border-radius:50%}
+.colhd small{color:var(--tx3);font-weight:400;font-size:11px}
+
+/* SVG 元素 */
+.ln{fill:none;stroke-width:1.4;opacity:.5;transition:opacity .15s,stroke-width .15s}
+.ln.direct{stroke:var(--direct)}
+.ln.code{stroke:var(--code)}
+.ln.process{stroke:var(--process)}
+.ln.hot{opacity:1;stroke-width:3.4;filter:drop-shadow(0 0 5px currentColor)}
+.ln.dim{opacity:.07}
+.lnhit{fill:none;stroke:transparent;stroke-width:13;cursor:pointer}
+
+.nd{cursor:pointer}
+.nd rect{transition:filter .15s,stroke .15s}
+.nd:hover rect{filter:brightness(1.35)}
+.nd.dim{opacity:.2}
+.ntxt{font-size:11.5px;fill:var(--tx);pointer-events:none;user-select:none}
+.nsub{font-size:10px;fill:var(--tx3);pointer-events:none;user-select:none}
+.nbdg{font-size:9.5px;fill:var(--tx2);pointer-events:none}
+
+/* 连线上的两个按钮 */
+.ebtn{cursor:pointer;pointer-events:all}
+.ebtn rect{fill:#1c2430;stroke-width:1.2;transition:fill .12s}
+.ebtn:hover rect{fill:#243040}
+.ebtn text{font-size:9.5px;fill:var(--tx2);text-anchor:middle;dominant-baseline:middle;pointer-events:none;font-weight:600}
+.ebtn:hover text{fill:var(--tx)}
+
+/* ---------- 侧滑面板 ---------- */
+#panel{
+  position:absolute;top:0;right:0;width:520px;max-width:82vw;height:100%;
+  background:var(--bg2);border-left:1px solid var(--line);box-shadow:var(--shadow);
+  transform:translateX(100%);transition:transform .22s ease;z-index:40;
+  display:flex;flex-direction:column;
+}
+#panel.open{transform:translateX(0)}
+#phead{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:10px}
+#phead h2{font-size:15px;font-weight:600;line-height:1.4;flex:1;word-break:break-all}
+#pclose{
+  width:26px;height:26px;border-radius:5px;background:var(--bg3);color:var(--tx2);
+  font-size:16px;line-height:1;flex:0 0 26px;display:flex;align-items:center;justify-content:center;
+}
+#pclose:hover{background:var(--warn);color:#fff}
+#pbody{flex:1;overflow-y:auto;padding:14px 16px 40px}
+.psub{font-size:12px;color:var(--tx3);margin-bottom:12px;line-height:1.7}
+
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;margin:0 5px 5px 0;border:1px solid}
+.tag.direct{color:var(--direct);border-color:#2a5c33;background:#12261a}
+.tag.code{color:var(--code);border-color:#6b5210;background:#241d0d}
+.tag.process{color:var(--process);border-color:#1e4a7a;background:#0f2033}
+
+.sec{margin:14px 0 0}
+.sec>h3{
+  font-size:12px;color:var(--tx2);font-weight:600;margin-bottom:7px;
+  padding-bottom:5px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;
+}
+.sec>h3 .n{color:var(--tx3);font-weight:400;font-size:11px}
+
+.box{background:var(--bg3);border:1px solid var(--line);border-radius:7px;padding:10px 12px;font-size:12.5px;line-height:1.8;color:var(--tx2)}
+.box.mono{font-family:Consolas,"Courier New",monospace;font-size:12px;white-space:pre-wrap;word-break:break-word}
+
+.step{display:flex;gap:9px;margin-bottom:8px;font-size:12.5px;line-height:1.75}
+.step .no{
+  flex:0 0 19px;height:19px;border-radius:50%;font-size:10px;display:flex;
+  align-items:center;justify-content:center;font-weight:700;margin-top:2px;
+}
+.step.base .no{background:#2a5c33;color:var(--direct)}
+.step.join .no{background:#1e4a7a;color:var(--process)}
+.step.filter .no{background:#6b5210;color:var(--code)}
+.step.logic .no{background:#3d2a5c;color:#c297ff}
+.step .tx{flex:1;color:var(--tx2);word-break:break-word;white-space:pre-wrap}
+
+.frow2{
+  border:1px solid var(--line);border-radius:7px;margin-bottom:8px;overflow:hidden;background:var(--bg3);
+}
+.fhead{padding:9px 11px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .12s}
+.fhead:hover{background:#222b37}
+.fbar{width:3px;align-self:stretch;border-radius:2px;flex:0 0 3px}
+.fseq{
+  flex:0 0 24px;height:19px;border-radius:4px;background:#0f1620;border:1px solid #2b3442;
+  color:var(--tx3);font-size:10.5px;font-variant-numeric:tabular-nums;
+  display:flex;align-items:center;justify-content:center;
+}
+.fdup{
+  flex:0 0 auto;font-size:9.5px;color:var(--warn);background:#3a1a1a;
+  border:1px solid #6b2b2b;border-radius:4px;padding:0 5px;line-height:17px;
+}
+.fbar.direct{background:var(--direct)} .fbar.code{background:var(--code)} .fbar.process{background:var(--process)}
+.fmeta{flex:1;min-width:0}
+.fef{font-size:12.5px;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fff{font-size:11px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+.fcat{font-size:10px;padding:1px 7px;border-radius:9px;flex:0 0 auto}
+.fcat.direct{background:#12261a;color:var(--direct);border:1px solid #2a5c33}
+.fcat.code{background:#241d0d;color:var(--code);border:1px solid #6b5210}
+.fcat.process{background:#0f2033;color:var(--process);border:1px solid #1e4a7a}
+.farw{flex:0 0 12px;color:var(--tx3);font-size:10px;transition:transform .18s}
+.frow2.open .farw{transform:rotate(90deg)}
+.fbody{display:none;padding:0 11px 11px 23px;border-top:1px solid var(--line)}
+.frow2.open .fbody{display:block}
+
+/* 折叠区 */
+details.fold{border:1px solid var(--line);border-radius:7px;background:var(--bg3);margin-bottom:10px;overflow:hidden}
+details.fold>summary{
+  padding:9px 12px;font-size:12.5px;color:var(--tx);cursor:pointer;list-style:none;
+  display:flex;align-items:center;gap:8px;user-select:none;
+}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary:hover{background:#222b37}
+details.fold>summary .caret{font-size:10px;color:var(--tx3);transition:transform .18s;flex:0 0 10px}
+details.fold[open]>summary .caret{transform:rotate(90deg)}
+details.fold>summary .hint{margin-left:auto;font-size:10.5px;color:var(--tx3);font-weight:400}
+details.fold .inner{padding:0 12px 12px;border-top:1px solid var(--line)}
+
+/* 字段连线（SVG 内） */
+#svg .fedge, #fieldSvg .fedge{fill:none;stroke-width:1.5;opacity:.85}
+#svg .fedge.direct, #fieldSvg .fedge.direct{stroke:var(--direct)}
+#svg .fedge.code, #fieldSvg .fedge.code{stroke:var(--code)}
+#svg .fedge.process, #fieldSvg .fedge.process{stroke:var(--process)}
+/* 字段图是独立 SVG（#fieldSvg），选择器不能只写 #svg */
+#svg .fnode rect, #fieldSvg .fnode rect{fill:#202935;stroke:#33405280;stroke-width:1}
+#svg .fnode.y rect, #fieldSvg .fnode.y rect{fill:#241f36;stroke:#4b3d6b}
+#svg .fnode text, #fieldSvg .fnode text{
+  font-size:11px;fill:var(--tx);pointer-events:none;user-select:none;
+}
+#svg .fnode.fdir rect, #fieldSvg .fnode.fdir rect{stroke:var(--direct);stroke-width:1.3}
+#svg .fnode.fcode rect, #fieldSvg .fnode.fcode rect{stroke:var(--code);stroke-width:1.3}
+#svg .fnode.fproc rect, #fieldSvg .fnode.fproc rect{stroke:var(--process);stroke-width:1.3}
+#svg .ftxt, #fieldSvg .ftxt{font-size:10px;fill:var(--tx3);pointer-events:none}
+#fieldSvg .fnode.nofill rect{fill:#1a2029}
+
+/* 提示 */
+#tip{
+  position:absolute;padding:7px 11px;background:#0b0f14f2;border:1px solid var(--line);
+  border-radius:6px;font-size:11.5px;color:var(--tx);pointer-events:none;z-index:60;
+  max-width:320px;line-height:1.7;box-shadow:var(--shadow);opacity:0;transition:opacity .12s;
+}
+#tip.on{opacity:1}
+#tip .tk{color:var(--tx3);font-size:10.5px;display:block;margin-bottom:2px}
+
+#toast{
+  position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+  background:#0b0f14ee;border:1px solid var(--line);border-radius:20px;padding:7px 18px;
+  font-size:12px;color:var(--tx2);z-index:70;opacity:0;transition:opacity .25s;pointer-events:none;
+}
+#toast.on{opacity:1}
+
+/* 缩放控件 */
+#zoom{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;gap:5px;z-index:20}
+#zoom button{
+  width:30px;height:30px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;
+  color:var(--tx2);font-size:15px;display:flex;align-items:center;justify-content:center;
+}
+#zoom button:hover{background:var(--bg3);color:var(--tx)}
+
+.empty{padding:30px 16px;text-align:center;color:var(--tx3);font-size:12.5px}
+
+/* 空Theme占位 */
+#blank{
+  position:absolute;inset:0;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;text-align:center;padding:40px;z-index:15;
+}
+#blank.on{display:flex}
+#blank h2{font-size:19px;color:var(--tx);font-weight:600}
+#blank p{font-size:13px;color:var(--tx3);max-width:520px;line-height:2}
+#blank .tlist{
+  background:var(--bg2);border:1px solid var(--line);border-radius:9px;
+  padding:16px 22px;text-align:left;font-size:12.5px;color:var(--tx2);
+  display:grid;grid-template-columns:repeat(2,auto);gap:7px 26px;
+}
+#blank .tlist span{color:var(--tx3);font-size:11px;display:block;margin-top:1px}
+#blank .note{
+  font-size:12px;color:#a3711f;background:#241d0d;border:1px solid #6b5210;
+  padding:9px 16px;border-radius:7px;max-width:520px;line-height:1.9;
+}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2c3644;border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:#3b4757}
+</style>
+</head>
+<body>
+
+<div id="top">
+  <h1>YBT → EAST 数据血缘地图<span id="themeTag"></span></h1>
+  <div class="legend">
+    <div class="lg"><i style="background:var(--direct)"></i>直接映射</div>
+    <div class="lg"><i style="background:var(--code)"></i>码值转换</div>
+    <div class="lg"><i style="background:var(--process)"></i>加工映射</div>
+  </div>
+  <div class="stats" id="stats"></div>
+</div>
+
+<div id="navBar"><div id="navInner"></div></div>
+
+<div id="main">
+  <div id="side">
+    <div id="search"><input id="q" placeholder="搜索报表 / EAST报表 / 字段…" /></div>
+    <div id="filterBox">
+      <label class="frow"><input type="checkbox" class="fc" data-c="direct" checked /><span class="chip" style="background:var(--direct)"></span>直接映射<span class="fcount" id="c-direct"></span></label>
+      <label class="frow"><input type="checkbox" class="fc" data-c="code" checked /><span class="chip" style="background:var(--code)"></span>码值转换<span class="fcount" id="c-code"></span></label>
+      <label class="frow"><input type="checkbox" class="fc" data-c="process" checked /><span class="chip" style="background:var(--process)"></span>加工映射<span class="fcount" id="c-process"></span></label>
+      <label class="frow" style="border-top:1px solid var(--line);padding-top:7px;margin-top:2px">
+        <input type="checkbox" id="onlyHot" />仅显示所选节点的关联
+      </label>
+      <button id="reset" style="margin-top:4px;padding:6px;background:var(--bg3);border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--tx2)">重置视图</button>
+    </div>
+    <div id="listWrap"></div>
+  </div>
+
+  <div id="canvasWrap">
+    <svg id="svg">
+      <g id="gEdge"></g>
+      <g id="gNode"></g>
+      <g id="gField"></g>
+    </svg>
+    <div class="colhd l"><span class="dot" style="background:var(--ybt)"></span>YBT 报表<small>上游 · 数据采集来源</small></div>
+    <div class="colhd r"><span class="dot" style="background:var(--east)"></span>EAST报表<small>下游 · 监管报送宽表</small></div>
+    <div id="zoom">
+      <button id="zin">+</button>
+      <button id="zout">−</button>
+      <button id="zfit" style="font-size:11px">⤢</button>
+    </div>
+    <div id="tip"></div>
+    <div id="toast"></div>
+    <div id="blank">
+      <h2 id="blankTitle"></h2>
+      <div class="note" id="blankNote"></div>
+      <p id="blankDesc"></p>
+      <div class="tlist" id="blankList"></div>
+    </div>
+    <div id="panel">
+      <div id="phead"><h2 id="ptitle"></h2><button id="pclose">×</button></div>
+      <div id="pbody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = {"tables": [], "forms": [], "edges": [], "stats": {"tables": 0, "forms": 0, "edges": 0, "fields": 0, "cat": {"direct": 0, "code": 0, "process": 0}, "joins": 0, "filters": 0}};
+const PAGE = {"idx": 11, "theme": "理财", "isAll": false, "missing": ["理财产品信息表", "理财产品状态表", "理财产品底层持仓信息表", "非标资产明细信息表", "其他非标资产明细信息表", "理财产品资产交易信息表", "理财产品销售明细表", "客户理财产品持有信息表"], "nav": [{"no": "ALL", "short": "总览", "href": "00-Overview.html", "tables": 64, "forms": 124, "cur": false, "empty": false, "tip": "全部主题合集（内容密集；建议按主题浏览）"}, {"no": "1", "short": "公共信息", "href": "01-PublicInfo.html", "tables": 6, "forms": 8, "cur": false, "empty": false, "tip": "公共信息 · 6 张表 / 93 条字段映射"}, {"no": "2", "short": "客户信息", "href": "02-CustomerInfo.html", "tables": 6, "forms": 21, "cur": false, "empty": false, "tip": "客户信息 · 6 张表 / 136 条字段映射"}, {"no": "3", "short": "卡信息", "href": "03-CardInfo.html", "tables": 3, "forms": 7, "cur": false, "empty": false, "tip": "卡信息 · 3 张表 / 49 条字段映射"}, {"no": "4", "short": "会计信息", "href": "04-AccountingInfo.html", "tables": 13, "forms": 24, "cur": false, "empty": false, "tip": "会计信息 · 13 张表 / 302 条字段映射"}, {"no": "5", "short": "贷款", "href": "05-Loans.html", "tables": 13, "forms": 33, "cur": false, "empty": false, "tip": "贷款 · 13 张表 / 358 条字段映射"}, {"no": "6", "short": "担保", "href": "06-Guarantee.html", "tables": 3, "forms": 6, "cur": false, "empty": false, "tip": "担保 · 3 张表 / 50 条字段映射"}, {"no": "7", "short": "信贷管理", "href": "07-CreditMgmt.html", "tables": 5, "forms": 15, "cur": false, "empty": false, "tip": "信贷管理 · 5 张表 / 93 条字段映射"}, {"no": "8", "short": "信用卡", "href": "08-CreditCard.html", "tables": 4, "forms": 9, "cur": false, "empty": false, "tip": "信用卡 · 4 张表 / 145 条字段映射"}, {"no": "9", "short": "表外授信", "href": "09-OffBalanceCredit.html", "tables": 5, "forms": 17, "cur": false, "empty": false, "tip": "表外授信 · 5 张表 / 127 条字段映射"}, {"no": "10", "short": "资金交易", "href": "10-FundTransactions.html", "tables": 5, "forms": 8, "cur": false, "empty": false, "tip": "资金交易 · 5 张表 / 135 条字段映射"}, {"no": "11", "short": "理财", "href": "11-WealthManagement.html", "tables": 0, "forms": 0, "cur": true, "empty": true, "tip": "理财 · 0 张表 / 0 条字段映射"}, {"no": "12", "short": "其他", "href": "12-Other.html", "tables": 1, "forms": 2, "cur": false, "empty": false, "tip": "其他 · 1 张表 / 7 条字段映射"}]};   // {idx, theme, nav[], missing[], isAll}
+const ALLTHEME = []; // 全量主题下拉（供本页"跨主题查表"用）
+
+const CAT = {
+  direct:  { label:'直接映射', color:'#3fb950', cls:'direct' },
+  code:    { label:'码值转换', color:'#d29922', cls:'code' },
+  process: { label:'加工映射', color:'#58a6ff', cls:'process' }
+};
+const esc = s => String(s==null?'':s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const clip = (s, n) => {
+  const t = String(s==null?'':s);
+  return t.length > n ? t.slice(0, n) + '…' : t;
+};
+
+const NS = 'http://www.w3.org/2000/svg';
+const el = (t,a)=>{const e=document.createElementNS(NS,t);
+  for(const k in a) e.setAttribute(k,a[k]); return e;};
+
+const state = {
+  forms: new Map(), tables: new Map(), edges: [],
+  edgeByKey: new Map(),
+  filters: new Set(['direct','code','process']),
+  query: '', sel: null, onlyHot: false,
+  vb: {x:0,y:0,k:1}
+};
+
+/* ---------- 建索引 ---------- */
+DATA.forms.forEach(f=>state.forms.set(f.name,f));
+DATA.tables.forEach(t=>state.tables.set(t.name,t));
+DATA.edges.forEach(e=>{ state.edges.push(e); state.edgeByKey.set(e.s+'→'+e.t, e); });
+
+/* ---------- 布局：两列纵向排列，按业务聚类 ---------- */
+function layout(){
+  const W = document.getElementById('canvasWrap');
+  const w = W.clientWidth, h = W.clientHeight;
+  const LH = 30, PAD = 74, TOP = 52, GAP = 16;
+
+  const forms = DATA.forms, tables = DATA.tables;
+  const fScore = f => f.tables.length;
+  const tScore = t => t.forms.length;
+  const fs = forms.slice().sort((a,b)=>fScore(b)-fScore(a) || a.name.localeCompare(b.name,'zh'));
+  const ts = tables.slice().sort((a,b)=>tScore(b)-tScore(a) || a.name.localeCompare(b.name,'zh'));
+
+  const colW = Math.max(210, Math.min(290, (w-PAD*2-170)/2));
+  const xs = PAD + colW/2, xt = w - PAD - colW/2;
+
+  let y = TOP, maxY = TOP;
+  state.pos = new Map();
+  fs.forEach(f=>{
+    state.pos.set('F:'+f.name, {x:xs, y, w:colW, h:LH, node:f, side:'f'});
+    y += LH + GAP; maxY = Math.max(maxY,y);
+  });
+  let y2 = TOP;
+  ts.forEach(t=>{
+    state.pos.set('T:'+t.name, {x:xt, y:y2, w:colW, h:LH, node:t, side:'t'});
+    y2 += LH + GAP; maxY = Math.max(maxY,y2);
+  });
+  state.bounds = {w, h:maxY + 30};
+  fitView();
+}
+
+function edgeGeom(e){
+  const a = state.pos.get('F:'+e.s), b = state.pos.get('T:'+e.t);
+  if(!a||!b) return null;
+  const x1 = a.x + a.w/2, y1 = a.y + a.h/2;
+  const x2 = b.x - b.w/2, y2 = b.y + b.h/2;
+  const dx = Math.max(40, (x2-x1)*0.5);
+  return {x1,y1,x2,y2,
+    d:`M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`,
+    mx:(x1+x2)/2, my:(y1+y2)/2};
+}
+
+/* ---------- 渲染 ---------- */
+const gEdge = document.getElementById('gEdge'),
+      gNode = document.getElementById('gNode'),
+      gField = document.getElementById('gField'),
+      svg = document.getElementById('svg');
+
+function render(){
+  gEdge.innerHTML=''; gNode.innerHTML=''; gField.innerHTML='';
+  const q = state.query.trim().toLowerCase();
+
+  DATA.edges.forEach(e=>{
+    const g = edgeGeom(e); if(!g) return;
+    const cat = e.dom;
+    const on = state.filters.has(cat);
+    // 搜索命中：表名或字段名匹配
+    let hit = true;
+    if(q){
+      const t = state.tables.get(e.t), f = state.forms.get(e.s);
+      hit = (e.t+' '+e.s).toLowerCase().includes(q)
+        || (t && t.fields.some(x=>x.name.toLowerCase().includes(q)))
+        || (f && f.fields.some(x=>x.toLowerCase().includes(q)));
+      if(hit){
+        const tf = t && t.fields.some(x=>x.name.toLowerCase().includes(q));
+        const ff = f && f.fields.some(x=>x.toLowerCase().includes(q));
+        hit = true; e._hf=tf; e._ff=ff;
+      }
+    }
+    const grp = el('g',{});
+    const path = el('path',{d:g.d, class:'ln '+CAT[cat].cls});
+    if(!on) path.setAttribute('opacity','.06');
+    if(q && !hit) path.setAttribute('opacity','.06');
+    grp.appendChild(path);
+    if(on) grp.appendChild(el('path',{d:g.d, class:'lnhit', 'data-gid':e.id}));
+    grp.dataset.eid = e.id;
+    gEdge.appendChild(grp);
+    e._g = g; e._path = path;
+  });
+
+  // 节点
+  const all = [];
+  DATA.forms.forEach(f=>all.push('F:'+f.name));
+  DATA.tables.forEach(t=>all.push('T:'+t.name));
+  all.forEach(k=>{
+    const p = state.pos.get(k); if(!p) return;
+    const isF = p.side==='f', n = p.node;
+    const label = isF ? (n.disp||n.name) : n.name;
+    const cnt = isF ? n.fields.length : n.n;
+    let dim = q && !((n.name+' '+(n.disp||'')).toLowerCase().includes(q));
+    const g = el('g',{class:'nd', transform:`translate(${p.x-p.w/2},${p.y-p.h/2})`});
+    g.appendChild(el('rect',{
+      width:p.w, height:p.h, rx:6,
+      fill: isF ? '#241f36' : '#152233',
+      stroke: isF ? '#4b3d6b' : '#1f4a7a', 'stroke-width':1.2
+    }));
+    const t1 = el('text',{class:'ntxt', x:11, y:p.h/2+4});
+    t1.textContent = label.length>20 ? label.slice(0,20)+'…' : label;
+    g.appendChild(t1);
+    const t2 = el('text',{class:'nsub', x:p.w-10, y:p.h/2+4, 'text-anchor':'end'});
+    t2.textContent = cnt + (isF?' fields':' sources');
+    g.appendChild(t2);
+    if(dim) g.setAttribute('class','nd dim');
+    g.addEventListener('click',()=>toggleSel(k));
+    gNode.appendChild(g);
+    n._g = g;
+  });
+
+  drawEdgeButtons();
+  applyVb();
+}
+
+/* ---------- 连线上的两个按钮（悬停该线才显示） ---------- */
+function drawEdgeButtons(){
+  document.querySelectorAll('.ebtnGrp').forEach(n=>n.remove());
+  const q = state.query.trim().toLowerCase();
+  DATA.edges.forEach(e=>{
+    if(!state.filters.has(e.dom) || !e._g) return;
+    if(q && (e._path?.getAttribute('opacity')==='.06')) return;
+    const gx = e._g.mx, gy = e._g.my;
+    const w = 56, h = 22;
+    const grp = el('g',{class:'ebtnGrp'});
+    grp.style.opacity = '0';
+    grp.style.transition = 'opacity .14s';
+    grp.style.pointerEvents = 'none';
+    const mk = (cx, cy, label, title)=>{
+      const g = el('g',{class:'ebtn', transform:`translate(${cx},${cy})`,
+        style:'pointer-events:all'});
+      g.appendChild(el('rect',{x:-w/2, y:-h/2, width:w, height:h, rx:11,
+        fill:'#0d141c', stroke:CAT[e.dom].color, 'stroke-width':1.8}));
+      const tx = el('text',{x:0, y:0.5}); tx.textContent = label;
+      tx.setAttribute('font-size','11');
+      tx.setAttribute('font-weight','600');
+      g.appendChild(tx);
+      g.addEventListener('mouseenter',ev=>showTip(ev,title));
+      g.addEventListener('mouseleave',hideTip);
+      g.addEventListener('click',ev=>{ev.stopPropagation();openPanel(e);});
+      grp.appendChild(g);
+    };
+    // 仅保留「明细」按钮，居中挂在连线上
+    const BY = gy + 13;
+    mk(gx, BY, '明细', `<span class="tk">明细 · ${esc(e.s)} → ${esc(e.t)}</span>${esc(e.detail||'No table-level rule separately registered for this edge')}`);
+    grp.dataset.mxy = `${gx},${gy}`;
+    grp.dataset.btns = `${gx},${BY}`;
+    gEdge.appendChild(grp);
+    e._btns = grp;
+  });
+}
+function hoverEdgeButtons(e, on){
+  if(!e || !e._btns) return;
+  e._btns.style.opacity = on ? '1' : '0';
+  e._btns.style.pointerEvents = on ? 'all' : 'none';
+}
+
+/* ---------- 选中 / 联动高亮 ---------- */
+function toggleSel(key){
+  state.sel = state.sel===key ? null : key;
+  state.onlyHot = !!state.sel;
+  document.getElementById('onlyHot').checked = state.onlyHot;
+  applyHighlight();
+  const [t,n] = key.split(':');
+  openNodePanel(t==='F'?state.forms.get(n):state.tables.get(n), t);
+  buildList();
+}
+
+function applyHighlight(){
+  const hot = new Set(), hotE = new Set();
+  if(state.sel){
+    const [t,n] = state.sel.split(':');
+    if(t==='F'){
+      DATA.edges.forEach(e=>{ if(e.s===n){hotE.add(e.id); hot.add('T:'+e.t);} });
+      hot.add('F:'+n);
+    }else{
+      DATA.edges.forEach(e=>{ if(e.t===n){hotE.add(e.id); hot.add('F:'+e.s);} });
+      hot.add('T:'+n);
+    }
+  }
+  DATA.edges.forEach(e=>{
+    if(!e._path) return;
+    const p = e._path;
+    p.classList.remove('hot','dim');
+    const q = state.query.trim().toLowerCase();
+    const dimQ = q && p.getAttribute('opacity')==='.06';
+    if(state.sel){
+      if(hotE.has(e.id)) p.classList.add('hot');
+      else if(!dimQ) p.classList.add('dim');
+    }
+  });
+  const q = state.query.trim().toLowerCase();
+  [...gNode.querySelectorAll('.nd')].forEach(g=>{
+    const tr = g.getAttribute('transform');
+    let k=null;
+    [...state.pos.entries()].forEach(([key,p])=>{
+      if(`translate(${p.x-p.w/2},${p.y-p.h/2})`===tr) k=key;
+    });
+    g.classList.remove('dim','on');
+    if(state.sel){
+      if(hot.has(k)) g.classList.add('on'); else g.classList.add('dim');
+    }else if(q){
+      const p = state.pos.get(k);
+      const n = p&&p.node;
+      const nm = n ? (n.name+' '+(n.disp||'')) : '';
+      if(!nm.toLowerCase().includes(q)) g.classList.add('dim');
+    }
+  });
+  gField.style.display = state.sel ? 'none' : '';
+}
+
+/* ---------- 字段级展开 ---------- */
+function openNodePanel(node, type){
+  if(!node) return;
+  const isF = type==='F';
+  document.getElementById('ptitle').textContent =
+    (isF?'YBT 报表 · ':'EAST报表 · ') + (isF?(node.disp||node.name):node.name);
+  const body = document.getElementById('pbody');
+  body.innerHTML = '';
+
+  const sub = document.createElement('div');
+  sub.className = 'psub';
+  if(isF){
+    sub.innerHTML = `Collected fields: <b style="color:var(--tx)">${node.fields.length}</b> ·
+      下游 EAST报表： <b style="color:var(--tx)">${node.tables.length}</b><br/>
+      Original names: ${node.raw.map(esc).join('　|　')}`;
+  }else{
+    const c = {direct:0,code:0,process:0};
+    node.fields.forEach(f=>c[f.cat]++);
+    sub.innerHTML = `落表字段： <b style="color:var(--tx)">${node.n}</b> ·
+      来源报表： <b style="color:var(--tx)">${node.forms.length}</b><br/>
+      <span class="tag direct">直接映射 ${c.direct}</span>
+      <span class="tag code">码值转换 ${c.code}</span>
+      <span class="tag process">加工映射 ${c.process}</span>`;
+  }
+  body.appendChild(sub);
+
+  if(isF) drawFieldMap(node, body);
+  else drawEastFields(node, body);
+
+  document.getElementById('panel').classList.add('open');
+}
+
+/* Forms节点：在 SVG 中绘制字段级血缘 */
+function drawFieldMap(form, body){
+  const fs = form.fields;
+  const maxShow = Math.min(fs.length, 40);
+  // 每行一组「一表通字段 → EAST Fields」，纵向单栏排列
+  const NW = 146, NH = 23, VGAP = 20, PADY = 28, SLOTGAP = 96;
+  const PAIRW = NW*2 + SLOTGAP;
+  const PADX = 4;
+  const rows = Math.min(fs.length, 40);
+  const H = PADY*2 + rows*(NH+VGAP);
+  const W = PAIRW + PADX*2;
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText='margin:6px 0 10px;border:1px solid var(--line);border-radius:8px;background:#0d1219;overflow:auto';
+  // 用固定像素宽 + viewBox，保证连线间隙不被容器压缩；超出时 wrap 横向滚动
+  const s = el('svg',{width:W, height:H, viewBox:`0 0 ${W} ${H}`});
+  s.style.display = 'block';
+  s.id = 'fieldSvg';
+
+  const xcol1 = PADX;              // 左框起点
+  const mkLabel = (x, txt, color, anchor)=>{
+    const t = el('text',{x, y:16, fill:color, 'font-size':11, 'text-anchor':anchor||'start'});
+    t.textContent = txt;
+    s.appendChild(t);
+  };
+  mkLabel(xcol1, `YBT Fields · ${form.disp||form.name}`, '#a78bfa');
+  mkLabel(PADX + NW*2 + SLOTGAP, 'EAST Fields', '#58a6ff', 'end');
+
+  // 建立 源字段 -> EAST Fields映射
+  const fmap = new Map();
+  DATA.edges.filter(e=>e.s===form.name).forEach(e=>{
+    e.fields.forEach(f=>{
+      const key = (f.ff||'').split(/[\n/／]/)[0].trim();
+      if(key && !fmap.has(key)) fmap.set(key, f);
+    });
+  });
+  // 严格按TransEAST Rules原表行序排列该Forms涉及的一表通字段
+  const rowOf = new Map();
+  DATA.edges.filter(e=>e.s===form.name).forEach(e=>{
+    e.fields.forEach(f=>{
+      const key = (f.ff||'').split(/[\n/／]/)[0].trim();
+      if(key && !rowOf.has(key)) rowOf.set(key, f.row);
+    });
+  });
+  const items = fs.map(ff=>{
+    const hit = fmap.get(ff);
+    return {ff, ef:hit?hit.ef:null, cat:hit?hit.cat:'process',
+            rule:hit?hit.rule:'', row:rowOf.get(ff) ?? 999999};
+  });
+  // 原表行序优先；无映射记录的排在末尾，按名称稳定排序
+  items.sort((a,b)=> (a.row-b.row) || a.ff.localeCompare(b.ff,'zh'));
+  const shown = items.slice(0, maxShow);
+
+  shown.forEach((it,i)=>{
+    const y = PADY + i*(NH+VGAP);
+    const x1 = xcol1;
+    const x2 = x1 + NW + SLOTGAP;   // 留出 SLOTGAP 的连线通道
+    const yy = y + NH/2;
+    const c = CAT[it.cat].color;
+
+    if(it.ef){
+      const mx = (x1+NW + x2)/2;
+      s.appendChild(el('path',{
+        d:`M${x1+NW},${yy} C${x1+NW+16},${yy} ${x2-16},${yy} ${x2},${yy}`,
+        class:'fedge '+CAT[it.cat].cls}));
+      // 类型标签：连线上居中，深底彩字加描边，压住连线也清晰
+      s.appendChild(el('rect',{x:mx-25, y:yy-8.5, width:50, height:17, rx:8.5,
+        fill:'#0d141c', stroke:c, 'stroke-width':1.2}));
+      const tt = el('text',{x:mx, y:yy+0.5, fill:c,
+        'font-size':9.5,'text-anchor':'middle','dominant-baseline':'middle'});
+      tt.textContent = CAT[it.cat].label;
+      s.appendChild(tt);
+    }else{
+      s.appendChild(el('path',{d:`M${x1+NW},${yy} L${x2},${yy}`,
+        stroke:'#333c4a','stroke-dasharray':'3 3','stroke-width':1}));
+    }
+
+    // 左：一表通字段
+    const g1 = el('g',{class:'fnode y'});
+    g1.appendChild(el('rect',{x:x1, y, width:NW, height:NH, rx:5,
+      fill:'#241f36', stroke:c, 'stroke-width':1.3}));
+    const t1 = el('text',{x:x1+10, y:y+NH/2+4, fill:'#e6edf6'});
+    t1.textContent = clip(it.ff, 13);
+    const tg1 = el('title'); tg1.textContent = it.ff;
+    g1.appendChild(tg1);
+    g1.appendChild(t1);
+    s.appendChild(g1);
+
+    // 右：EAST Fields
+    const g2 = el('g',{class:'fnode'});
+    g2.appendChild(el('rect',{x:x2, y, width:NW, height:NH, rx:5,
+      fill:'#1b2836', stroke:c, 'stroke-width':1.3}));
+    const t2 = el('text',{x:x2+10, y:y+NH/2+4,
+      fill: it.ef ? '#e6edf6' : '#7a869a'});
+    t2.textContent = clip(it.ef || '(no direct match)', 13);
+    const tg2 = el('title'); tg2.textContent = it.ef || '(no direct match)';
+    g2.appendChild(tg2);
+    g2.appendChild(t2);
+    s.appendChild(g2);
+
+    if(it.rule){
+      const hit = el('rect',{x:Math.min(x1,x2), y, width:Math.abs(x2-x1)+NW, height:NH, fill:'transparent'});
+      hit.style.cursor='pointer';
+      hit.addEventListener('mousemove',ev=>showTip(ev,
+        `<span class="tk">${esc(it.ff)} → ${esc(it.ef||'—')}</span>${esc(it.rule)}`));
+      hit.addEventListener('mouseleave',hideTip);
+      s.appendChild(hit);
+    }
+  });
+
+  wrap.appendChild(s);
+  body.appendChild(wrap);
+  if(fs.length > maxShow){
+    const n = document.createElement('div');
+    n.className='psub';
+    n.textContent = `另有 ${fs.length-rows} 个字段未在图中展示，详见下方列表`;
+    body.appendChild(n);
+  }
+
+  // 字段加工规则清单
+  const sec = document.createElement('div');
+  sec.className='sec';
+  sec.innerHTML = `<h3>字段加工规则<span class="n">${items.length} 个字段 · 按底稿行序（TransEAST 底稿）</span></h3>`;
+  const box = document.createElement('div');
+  const rowsHtml = items.map((it,i)=>{
+    const f = it.ff;
+    const hit = fmap.get(f);
+    const cat = hit?hit.cat:'process';
+    const brief = hit?hit.brief:'未登记独立规则，由表级逻辑处理';
+    return `<div class="frow2" data-cat="${cat}">
+      <div class="fhead">
+        <span class="fseq">${i+1}</span>
+        <span class="fbar ${CAT[cat].cls}"></span>
+        <div class="fmeta">
+          <div class="fef">${esc(f)}</div>
+          <div class="fff">${esc(brief)}</div>
+        </div>
+        <span class="fcat ${CAT[cat].cls}">${CAT[cat].label}</span>
+        <span class="farw">▶</span>
+      </div>
+      <div class="fbody">
+        <div style="font-size:11.5px;color:var(--tx3);margin:9px 0 5px">原始规则</div>
+        <div class="box mono">${esc(hit?hit.rule:'（来源表未登记该字段的独立规则）')}</div>
+        ${hit&&hit.row?`<div style="font-size:11px;color:var(--tx3);margin-top:6px">来源：TransEAST 底稿第 ${hit.row} 行</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  box.innerHTML = rowsHtml;
+  sec.appendChild(box);
+  body.appendChild(sec);
+  bindFold(box);
+}
+
+/* EAST报表节点：字段清单 */
+function drawEastFields(table, body){
+  // 先显示表级规则（可折叠）
+  const d = document.createElement('details');
+  d.className='fold'; d.open = true;
+  d.innerHTML = `<summary><span class="caret">▶</span>表级加工与过滤逻辑
+      <span class="hint">${table.forms.length} 个来源报表</span></summary>
+    <div class="inner" id="tblRuleBox"></div>`;
+  body.appendChild(d);
+  renderTableRule(d.querySelector('#tblRuleBox'), table);
+
+  const sec = document.createElement('div');
+  sec.className='sec';
+  sec.innerHTML = `<h3>字段映射明细<span class="n">${table.n} 个字段 · 按底稿行序（TransEAST 底稿）</span></h3>`;
+  const box = document.createElement('div');
+  const dupNames = {};
+  table.fields.forEach(f=>{ dupNames[f.name] = (dupNames[f.name]||0)+1; });
+  box.innerHTML = table.fields.map(f=>`<div class="frow2">
+      <div class="fhead">
+        <span class="fseq">${f.seq}</span>
+        <span class="fbar ${CAT[f.cat].cls}"></span>
+        <div class="fmeta">
+          <div class="fef">${esc(f.name)}${dupNames[f.name]>1?' <span class="fdup">同名多来源</span>':''}</div>
+          <div class="fff">← ${esc(f.form)} / ${esc(f.formField||'—')}</div>
+        </div>
+        <span class="fcat ${CAT[f.cat].cls}">${CAT[f.cat].label}</span>
+        <span class="farw">▶</span>
+      </div>
+      <div class="fbody">
+        <div style="font-size:11.5px;color:var(--tx3);margin:9px 0 5px">摘要</div>
+        <div class="box">${esc(f.brief)}</div>
+        <div style="font-size:11.5px;color:var(--tx3);margin:11px 0 5px">详细规则</div>
+        <div class="box mono">${esc(f.rule||'（未登记）')}</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:6px">来源：TransEAST 底稿第 ${f.row} 行</div>
+      </div>
+    </div>`).join('');
+  sec.appendChild(box);
+  body.appendChild(sec);
+  bindFold(box);
+}
+
+/* 表级规则渲染（摘要 + 明细两步展开） */
+function renderTableRule(host, table){
+  const edgesOf = DATA.edges.filter(e=>e.t===table.name);
+  const joins = [], filters = [], steps = [], others = [];
+  edgesOf.forEach(e=>{
+    e.joins.forEach(j=>{ if(!joins.includes(j)) joins.push(j); });
+    e.filters.forEach(j=>{ if(!filters.includes(j)) filters.push(j); });
+  });
+  edgesOf.forEach(e=>{ e.steps.forEach(s=>{ if(!steps.some(x=>x.text===s.text)) steps.push(s); }); });
+
+  host.innerHTML = '';
+
+  // 一级：简要
+  const sum = document.createElement('details');
+  sum.className='fold';
+  const catDom = edgesOf.length ? edgesOf[0].dom : 'process';
+  sum.innerHTML = `<summary><span class="caret">▶</span>展开摘要
+      <span class="hint">${joins.length} 条关联 · ${filters.length} 条过滤</span></summary>
+    <div class="inner">
+      <div class="box" style="margin-top:10px">
+        主表来自 <b style="color:var(--tx)">${esc(table.forms.join('、')||'—')}</b>；
+        ${joins.length}  处表间关联取数${filters.length?`，${filters.length}  个过滤条件限定数据范围`:'，无额外过滤条件'}。
+      </div>
+      <div style="margin-top:9px">
+        <span style="font-size:11.5px;color:var(--tx3)">主要关联对象</span>
+        <div style="margin-top:5px">${[...new Set(joins.map(j=>{
+          const m = j.match(/【([^】]+)】/g); return m?m.join(''):'';
+        }).filter(Boolean))].slice(0,12).map(x=>
+          `<span class="tag process">${esc(x)}</span>`).join('')||'<span class="psub">无</span>'}</div>
+      </div>
+    </div>`;
+  host.appendChild(sum);
+
+  // 二级：详细
+  const det = document.createElement('details');
+  det.className='fold';
+  det.innerHTML = `<summary><span class="caret">▶</span>展开明细
+      <span class="hint">完整加工步骤</span></summary>
+    <div class="inner" style="padding-top:11px">
+      ${steps.length? steps.map((s,i)=>`<div class="step ${s.type}">
+          <span class="no">${i+1}</span><span class="tx">${esc(s.text)}</span>
+        </div>`).join('')
+        : '<div class="box">来源表未登记该表的表级加工逻辑，各字段按自身规则落表。</div>'}
+      ${filters.length?`<div style="margin-top:11px">
+        <div style="font-size:11.5px;color:var(--tx3);margin-bottom:5px">过滤条件汇总</div>
+        ${filters.map(f=>`<div class="step filter"><span class="no">!</span><span class="tx">${esc(f)}</span></div>`).join('')}
+      </div>`:''}
+      <div style="margin-top:11px">
+        <div style="font-size:11.5px;color:var(--tx3);margin-bottom:6px">来源报表 → 本表</div>
+        ${edgesOf.map(e=>`<div class="frow2"><div class="fhead">
+            <span class="fbar ${CAT[e.dom].cls}"></span>
+            <div class="fmeta"><div class="fef">${esc(e.s)}</div>
+            <div class="fff">${esc(e.brief)}</div></div>
+            <span class="fcat ${CAT[e.dom].cls}">${e.n} 字段</span>
+            <span class="farw">▶</span></div>
+          <div class="fbody"><div class="box mono">${esc(e.detail||'（未登记表级规则）')}</div></div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  host.appendChild(det);
+}
+
+/* 连线面板（点击摘要/明细按钮） */
+function openPanel(e){
+  document.getElementById('ptitle').textContent = `${e.s} → ${e.t}`;
+  const body = document.getElementById('pbody');
+  const mix = Object.entries(e.mix||{}).map(([k,v])=>
+    `<span class="tag ${CAT[k].cls}">${CAT[k].label} ${v}</span>`).join('');
+  body.innerHTML = `
+    <div class="psub">${mix} <span class="tag process">${e.n} 个字段</span></div>
+    <details class="fold" open><summary><span class="caret">▶</span>摘要</summary>
+      <div class="inner"><div class="box" style="margin-top:10px">${esc(e.brief)}</div></div></details>
+    <details class="fold"><summary><span class="caret">▶</span>详细说明（筛选与加工逻辑）</summary>
+      <div class="inner" style="padding-top:11px">
+        ${e.steps&&e.steps.length?e.steps.map((s,i)=>`<div class="step ${s.type}">
+          <span class="no">${i+1}</span><span class="tx">${esc(s.text)}</span></div>`).join('')
+          :'<div class="box">该连线未登记独立的表级规则，各字段按自身规则落表。</div>'}
+      </div></details>
+    <div class="sec"><h3>字段级血缘<span class="n">${e.n} · 按底稿行序（TransEAST 底稿）</span></h3><div id="eFields"></div></div>`;
+  document.getElementById('panel').classList.add('open');
+  const host = document.getElementById('eFields');
+  host.innerHTML = e.fields.map(f=>`<div class="frow2">
+      <div class="fhead">
+        <span class="fseq">${f.seq}</span>
+        <span class="fbar ${CAT[f.cat].cls}"></span>
+        <div class="fmeta">
+          <div class="fef">${esc(f.ef)}</div>
+          <div class="fff">← ${esc(f.ff||'—')}</div>
+        </div>
+        <span class="fcat ${CAT[f.cat].cls}">${CAT[f.cat].label}</span>
+        <span class="farw">▶</span>
+      </div>
+      <div class="fbody">
+        <div class="box" style="margin-bottom:8px">${esc(f.brief)}</div>
+        <div class="box mono">${esc(f.rule||'（未登记）')}</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:6px">来源：底稿第 ${f.row} 行</div>
+      </div></div>`).join('');
+  bindFold(host);
+}
+
+/* 折叠交互绑定 */
+function bindFold(host){
+  host.querySelectorAll('.fhead').forEach(h=>{
+    if(h._b) return; h._b = 1;
+    h.addEventListener('click',()=>h.parentElement.classList.toggle('open'));
+  });
+}
+
+/* ---------- 侧栏列表 ---------- */
+function buildList(){
+  const host = document.getElementById('listWrap');
+  const q = state.query.trim().toLowerCase();
+  host.innerHTML = '';
+  const mk = (title, arr, type, keyName)=>{
+    const items = arr.filter(n=>{
+      if(!q) return true;
+      const hay = (n.name+' '+(n.disp||'')+' '+n.fields.join(' ')).toLowerCase();
+      return hay.includes(q);
+    });
+    if(!items.length) return;
+    const g = document.createElement('div');
+    g.className='lgroup';
+    g.textContent = `${title} · ${items.length}`;
+    host.appendChild(g);
+    items.forEach(n=>{
+      const k = type+':'+n.name;
+      const d = document.createElement('div');
+      d.className = 'item' + (state.sel===k?' on':'');
+      d.innerHTML = `<span class="nm" title="${esc(n.name)}">${esc(type==='F'?(n.disp||n.name):n.name)}</span>
+        <span class="ct">${type==='F'? n.fields.length : n.n}</span>`;
+      d.onclick = ()=>toggleSel(k);
+      host.appendChild(d);
+    });
+  };
+  mk('YBT 报表', DATA.forms, 'F');
+  mk('EAST报表', DATA.tables, 'T');
+  if(!host.children.length) host.innerHTML = '<div class="empty">无匹配结果</div>';
+}
+
+/* ---------- 提示 ---------- */
+const tip = document.getElementById('tip');
+function showTip(ev, html){
+  tip.innerHTML = html;
+  tip.classList.add('on');
+  const r = document.getElementById('canvasWrap').getBoundingClientRect();
+  let x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14;
+  if(x + 340 > r.width) x = ev.clientX - r.left - 330;
+  if(y + 130 > r.height) y = ev.clientY - r.top - 120;
+  tip.style.left = x+'px'; tip.style.top = y+'px';
+}
+function hideTip(){ tip.classList.remove('on'); }
+
+let tt;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(tt); tt = setTimeout(()=>t.classList.remove('on'), 2200);
+}
+
+/* ---------- 缩放平移 ---------- */
+function applyVb(){
+  const {x,y,k} = state.vb;
+  gEdge.setAttribute('transform',`translate(${x},${y}) scale(${k})`);
+  gNode.setAttribute('transform',`translate(${x},${y}) scale(${k})`);
+  // 按钮反缩放：缩小时保持文字可读（按记录的四点坐标分别还原）
+  const inv = 1/Math.max(k,0.001);
+  gEdge.querySelectorAll('.ebtnGrp').forEach(grp=>{
+    const m = grp.dataset.btns;
+    if(!m) return;
+    const [bx1,by1,bx2,by2] = m.split(',').map(Number);
+    const kids = grp.children;
+    if(kids[0]) kids[0].setAttribute('transform',`translate(${bx1},${by1}) scale(${inv})`);
+    if(kids[1]) kids[1].setAttribute('transform',`translate(${bx2},${by2}) scale(${inv})`);
+  });
+}
+function fitView(){
+  const b = state.bounds;
+  const r = document.getElementById('canvasWrap').getBoundingClientRect();
+  // 节点多时不整体缩到看不清：保底 0.62x，用户可自行缩放
+  const k = Math.max(0.62, Math.min(1.15, r.height / b.h, r.width / b.w));
+  state.vb = {k, x:(r.width - b.w*k)/2, y:26};
+  applyVb();
+}
+function zoomAt(cx, cy, f){
+  const o = state.vb;
+  const k = Math.max(0.25, Math.min(3, o.k*f));
+  state.vb = {k, x:cx - (cx-o.x)*(k/o.k), y:cy - (cy-o.y)*(k/o.k)};
+  applyVb();
+}
+svg.addEventListener('wheel',ev=>{
+  ev.preventDefault();
+  const r = svg.getBoundingClientRect();
+  zoomAt(ev.clientX-r.left, ev.clientY-r.top, ev.deltaY<0?1.12:1/1.12);
+},{passive:false});
+
+let drag=null;
+svg.addEventListener('mousedown',ev=>{
+  if(ev.target.closest('.ebtn')||ev.target.closest('.nd')) return;
+  drag = {x:ev.clientX, y:ev.clientY, vx:state.vb.x, vy:state.vb.y, moved:false};
+  svg.classList.add('drag');
+});
+window.addEventListener('mousemove',ev=>{
+  if(!drag) return;
+  if(Math.abs(ev.clientX-drag.x)>3||Math.abs(ev.clientY-drag.y)>3) drag.moved=true;
+  state.vb.x = drag.vx + (ev.clientX-drag.x);
+  state.vb.y = drag.vy + (ev.clientY-drag.y);
+  applyVb();
+});
+window.addEventListener('mouseup',ev=>{
+  if(drag && drag.moved){ suppressClick = true; setTimeout(()=>suppressClick=false, 60); }
+  drag=null; svg.classList.remove('drag');
+});
+let suppressClick=false;
+
+/* 连线 hover 高亮 + 唤出该线的两个按钮 */
+gEdge.addEventListener('mouseover',ev=>{
+  const p = ev.target.closest('.lnhit'); if(!p) return;
+  const e = DATA.edges.find(x=>x.id===p.parentElement.dataset.eid);
+  p.parentElement.querySelector('.ln')?.classList.add('hot');
+  hoverEdgeButtons(e, true);
+});
+gEdge.addEventListener('mouseout',ev=>{
+  const p = ev.target.closest('.lnhit');
+  if(!p) return;
+  if(ev.relatedTarget?.closest?.('.ebtn')) return;
+  const e = DATA.edges.find(x=>x.id===p.parentElement.dataset.eid);
+  if(!state.sel) p.parentElement.querySelector('.ln')?.classList.remove('hot');
+  hoverEdgeButtons(e, false);
+});
+gEdge.addEventListener('click',ev=>{
+  const p = ev.target.closest('.lnhit'); if(!p) return;
+  const e = DATA.edges.find(x=>x.id===p.parentElement.dataset.eid);
+  if(e) openPanel(e);
+});
+
+/* ---------- 事件 ---------- */
+document.getElementById('q').addEventListener('input',ev=>{
+  state.query = ev.target.value;
+  render(); buildList(); applyHighlight();
+});
+document.querySelectorAll('.fc').forEach(c=>{
+  c.addEventListener('change',()=>{
+    if(c.checked) state.filters.add(c.dataset.c);
+    else state.filters.delete(c.dataset.c);
+    render(); applyHighlight();
+  });
+});
+document.getElementById('onlyHot').addEventListener('change',ev=>{
+  state.onlyHot = ev.target.checked;
+  if(!state.onlyHot && state.sel){ state.sel=null; buildList(); }
+  applyHighlight();
+});
+document.getElementById('reset').onclick = ()=>{
+  state.sel=null; state.query=''; state.onlyHot=false;
+  document.getElementById('q').value='';
+  document.getElementById('onlyHot').checked=false;
+  state.filters = new Set(['direct','code','process']);
+  document.querySelectorAll('.fc').forEach(c=>c.checked=true);
+  render(); buildList(); applyHighlight(); fitView();
+};
+document.getElementById('pclose').onclick = ()=>{
+  document.getElementById('panel').classList.remove('open');
+  state.sel=null; state.onlyHot=false;
+  document.getElementById('onlyHot').checked=false;
+  applyHighlight(); buildList();
+};
+document.getElementById('zin').onclick = ()=>{
+  const r = svg.getBoundingClientRect(); zoomAt(r.width/2, r.height/2, 1.25);
+};
+document.getElementById('zout').onclick = ()=>{
+  const r = svg.getBoundingClientRect(); zoomAt(r.width/2, r.height/2, 0.8);
+};
+document.getElementById('zfit').onclick = fitView;
+window.addEventListener('resize', ()=>{ layout(); render(); applyHighlight(); });
+
+/* ---------- 启动 ---------- */
+(function init(){
+  const st = DATA.stats;
+
+  document.getElementById('themeTag').innerHTML = PAGE.isAll
+    ? '<span id="h1theme">全部主题 · 总览</span>'
+    : '<span id="h1theme">' + PAGE.idx + '. ' + esc(PAGE.theme) + '</span>';
+
+  // 主题导航
+  const nav = document.getElementById('navInner');
+  nav.innerHTML = '';
+  PAGE.nav.forEach(function(n){
+    const a = document.createElement('a');
+    a.className = 'navitem' + (n.cur ? ' on' : '') + (n.empty ? ' empty' : '');
+    a.href = n.href;
+    a.title = n.tip;
+    a.innerHTML = '<span class="no">' + n.no + '</span>'
+      + '<span>' + esc(n.short) + '</span>'
+      + '<span class="mini">' + n.tables + '表 / ' + n.forms + '报表</span>';
+    nav.appendChild(a);
+  });
+
+  document.getElementById('stats').innerHTML =
+    '<div class="stat"><b>' + DATA.tables.length + '</b>EAST报表</div>'
+    + '<div class="stat"><b>' + DATA.forms.length + '</b>YBT 报表</div>'
+    + '<div class="stat"><b>' + DATA.edges.length + '</b>血缘连线</div>'
+    + '<div class="stat"><b>' + st.fields + '</b>字段映射</div>'
+    + '<div class="stat" style="border-color:#2a5c33"><b style="color:var(--direct)">' + st.cat.direct + '</b>直接</div>'
+    + '<div class="stat" style="border-color:#6b5210"><b style="color:var(--code)">' + st.cat.code + '</b>码值</div>'
+    + '<div class="stat" style="border-color:#1e4a7a"><b style="color:var(--process)">' + st.cat.process + '</b>加工</div>';
+  document.getElementById('c-direct').textContent = st.cat.direct;
+  document.getElementById('c-code').textContent = st.cat.code;
+  document.getElementById('c-process').textContent = st.cat.process;
+
+  // 空Theme占位
+  if(!DATA.tables.length){
+    document.getElementById('blank').classList.add('on');
+    document.getElementById('blankTitle').textContent = PAGE.idx + '. ' + PAGE.theme;
+    document.getElementById('blankNote').innerHTML =
+      '本主题下 <b>' + PAGE.missing.length + '</b> 张 EAST报表尚未纳入当前版本的转EAST映射底稿，'
+      + '因此暂无字段级血缘可展示。补齐底稿后重新生成即可自动填充。';
+    document.getElementById('blankDesc').textContent =
+      '该主题涉及的 EAST报表清单（来自《EASTTheme与表名对应》）：';
+    document.getElementById('blankList').innerHTML =
+      PAGE.missing.map(function(t){
+        return '<div>' + esc(t) + '<span>待补充映射规则</span></div>';
+      }).join('');
+  }
+
+  layout(); render(); buildList();
+  if(DATA.tables.length){
+    toast(PAGE.isAll
+      ? '总览页包含全部主题，节点较密 · 建议从上方导航进入分主题视图'
+      : '当前主题「' + PAGE.theme + '」· 点击节点展开字段血缘，悬停连线点「明细」查看加工逻辑');
+  }
+})();
+</script>
+</body>
+</html>
